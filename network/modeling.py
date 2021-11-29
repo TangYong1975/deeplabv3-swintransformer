@@ -3,6 +3,7 @@ from ._deeplab import DeepLabHead, DeepLabHeadV3Plus, DeepLabV3
 from .backbone import resnet
 from .backbone import mobilenetv2
 from .backbone import swintransformer
+from .backbone import microsoft_swintransformer
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -81,6 +82,28 @@ def _segm_swimtransformer(name, backbone_name, num_classes, output_stride, pretr
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _segm_microsoft_swimtransformer(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        aspp_dilate = [12, 24, 36]
+    else:
+        aspp_dilate = [6, 12, 18]
+
+    backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448)
+
+    inplanes = 768
+    low_level_planes = 192
+
+    if name=='deeplabv3plus': # NotImplementedError
+        return_layers = {'stage4': 'out', 'stage2': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'forward_features': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    #backbone = IntermediateLayerGetter(backbone, return_layers=return_layers) # for Microsoft
+
+    model = DeepLabV3(backbone, classifier)
+    return model
+
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
     if backbone=='mobilenetv2':
@@ -89,7 +112,9 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
         model = _segm_resnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('swimtransformer'):
         model = _segm_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-    else:
+    elif backbone.startswith('microsoft_swimtransformer'):
+        model = _segm_microsoft_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    else:    
         raise NotImplementedError
     return model
 
@@ -163,7 +188,7 @@ def deeplabv3plus_mobilenet(num_classes=21, output_stride=8, pretrained_backbone
 
 
 def deeplabv3plus_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a MobileNetv2 backbone.
+    """Constructs a DeepLabV3+ model with a Berniwal Swin-Transformer backbone.
 
     Args:
         num_classes (int): number of classes.
@@ -174,11 +199,33 @@ def deeplabv3plus_swimtransformer(num_classes=21, output_stride=8, pretrained_ba
 
 
 def deeplabv3_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a MobileNetv2 backbone.
+    """Constructs a DeepLabV3+ model with a Berniwal Swin-Transformer backbone.
 
     Args:
         num_classes (int): number of classes.
         output_stride (int): output stride for deeplab.
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
-    return _load_model('deeplabv3', 'swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)    
+    return _load_model('deeplabv3', 'swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_microsoft_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
+    """Constructs a DeepLabV3+ model with a Microsoft Swin-Transformer backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_microsoft_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
+    """Constructs a DeepLabV3+ model with a Microsoft Swin-Transformer backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3plus', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+    

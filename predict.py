@@ -28,7 +28,7 @@ def get_argparser():
                         help="path to a single image or image directory")
     parser.add_argument("--dataset", type=str, default='voc',
                         choices=['voc', 'cityscapes'], help='Name of training set')
-    parser.add_argument("--num_classes", type=int, default=2,
+    parser.add_argument("--num_classes", type=int, default=21,
                         help="num classes (default: None)")
 
     # Deeplab Options

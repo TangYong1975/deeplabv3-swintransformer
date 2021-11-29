@@ -72,7 +72,7 @@ class DeepLabHead(nn.Module):
         self._init_weight()
 
     def forward(self, feature):
-        return self.classifier( feature['out'] )
+        return self.classifier(feature['out'])
 
     def _init_weight(self):
         for m in self.modules():

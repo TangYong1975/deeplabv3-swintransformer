@@ -11,6 +11,7 @@ import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 from einops import rearrange, repeat
 import math
+from collections import OrderedDict
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -534,6 +535,11 @@ class SwinTransformer(nn.Module):
                                use_checkpoint=use_checkpoint)
             self.layers.append(layer)
 
+        self.stage1 = self.layers[0]
+        self.stage2 = self.layers[1]
+        self.stage3 = self.layers[2]
+        self.stage4 = self.layers[3]
+
         self.norm = norm_layer(self.num_features)
         self.avgpool = nn.AdaptiveAvgPool1d(1)
         self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
@@ -563,21 +569,35 @@ class SwinTransformer(nn.Module):
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
 
+        x = self.stage1(x)
+        fl = x.transpose(1, 2)
+        fl = rearrange(fl, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fl.size(2)))) # for DeeplabV3
+        x = self.stage2(x)
+        x = self.stage3(x)
+        x = self.stage4(x)
+        fh = x.transpose(1, 2)
+        fh = rearrange(fh, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fh.size(2)))) # for DeeplabV3
+        return fl, fh
+        '''
         for layer in self.layers:
             x = layer(x)
-
         x = self.norm(x)  # B L C
         x = x.transpose(1, 2) # B C L
-        #x = self.avgpool(x)
-        #x = torch.flatten(x, 1)
-        x = rearrange(x, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(x.size(2)))) # for DeeplabV3
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         return x
-
+        '''
     def forward(self, x):
+        fl, fh = self.forward_features(x)
+        ft = OrderedDict()
+        ft['low_level'] = fl
+        ft['out'] = fh  
+        return ft
+        '''
         x = self.forward_features(x)
-        #x = self.head(x)
+        x = self.head(x)
         return x
-
+        '''
     def flops(self):
         flops = 0
         flops += self.patch_embed.flops()
