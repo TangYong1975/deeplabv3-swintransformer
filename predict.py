@@ -32,11 +32,12 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_swimtransformer',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_microsoft_swimtransformer',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
-                                 'deeplabv3_swimtransformer', 'deeplabv3plus_swimtransformer'], help='model name')
+                                 'deeplabv3_swimtransformer', 'deeplabv3plus_swimtransformer', 
+                                 'deeplabv3_microsoft_swimtransformer', 'deeplabv3plus_microsoft_swimtransformer'], help='model name')
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
@@ -52,7 +53,7 @@ def get_argparser():
     parser.add_argument("--crop_size", type=int, default=448)
 
     
-    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_swimtransformer_voc_os16.pth', type=str,
+    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_microsoft_swimtransformer_voc_os16.pth', type=str,
                         help="resume from checkpoint")
     parser.add_argument("--gpu_id", type=str, default='0',
                         help="GPU ID")
@@ -92,7 +93,9 @@ def main():
         'deeplabv3_mobilenet': network.deeplabv3_mobilenet,
         'deeplabv3plus_mobilenet': network.deeplabv3plus_mobilenet,
         'deeplabv3_swimtransformer': network.deeplabv3_swimtransformer,
-        'deeplabv3plus_swimtransformer': network.deeplabv3plus_swimtransformer
+        'deeplabv3plus_swimtransformer': network.deeplabv3plus_swimtransformer,
+        'deeplabv3_microsoft_swimtransformer': network.deeplabv3_microsoft_swimtransformer,
+        'deeplabv3plus_microsoft_swimtransformer': network.deeplabv3plus_microsoft_swimtransformer
     }
 
     model = model_map[opts.model](num_classes=opts.num_classes, output_stride=opts.output_stride)

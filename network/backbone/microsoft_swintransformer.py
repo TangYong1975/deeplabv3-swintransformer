@@ -571,12 +571,12 @@ class SwinTransformer(nn.Module):
 
         x = self.stage1(x)
         fl = x.transpose(1, 2)
-        fl = rearrange(fl, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fl.size(2)))) # for DeeplabV3
+        fl = rearrange(fl, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fl.size(2)))) # for DeeplabV3plus, low_level
         x = self.stage2(x)
         x = self.stage3(x)
         x = self.stage4(x)
         fh = x.transpose(1, 2)
-        fh = rearrange(fh, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fh.size(2)))) # for DeeplabV3
+        fh = rearrange(fh, 'b c (lw lh) -> b c lw lh', lw=int(math.sqrt(fh.size(2)))) # for DeeplabV3plus, high_level
         return fl, fh
         '''
         for layer in self.layers:
