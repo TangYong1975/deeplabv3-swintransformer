@@ -5,5 +5,6 @@ from deeplabv3 (https://github.com/VainF/DeepLabV3Plus-Pytorch), and some swin-t
 note：
 1. deeplabv3 and deeplabv3plus for berniwal swin-transformer;
 2. deeplabv3 for microsoft swin-transformer;
-3. deeplabv3plus for microsoft swin-transformer.
+3. deeplabv3plus for microsoft swin-transformer;
+4. modify WindowAttention of berniwal swin-transformer by my thinking.
 
