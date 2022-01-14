@@ -32,7 +32,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_berniwal_swimtransformer',
+    parser.add_argument("--model", type=str, default='deeplabv3_berniwal_swimtransformer',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
@@ -55,7 +55,7 @@ def get_argparser():
     parser.add_argument("--step_size", type=int, default=10000)
     parser.add_argument("--crop_val", action='store_true', default=False,
                         help='crop validation (default: False)')
-    parser.add_argument("--batch_size", type=int, default=16,
+    parser.add_argument("--batch_size", type=int, default=2, #16, swin_t, 2, swin_b
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=8,
                         help='batch size for validation (default: 4)')

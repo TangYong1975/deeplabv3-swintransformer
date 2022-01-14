@@ -66,9 +66,9 @@ def _segm_berniwal_swimtransformer(name, backbone_name, num_classes, output_stri
     else:
         aspp_dilate = [6, 12, 18]
 
-    backbone = berniwal_swintransformer.swin_t(num_classes=num_classes)
+    backbone = berniwal_swintransformer.swin_b(num_classes=num_classes)
 
-    inplanes = 768
+    inplanes = 1024 #768, swin_t, swin_s, 1024, swin_b, 1536 swin_l
     low_level_planes = 192
 
     if name=='deeplabv3plus':
