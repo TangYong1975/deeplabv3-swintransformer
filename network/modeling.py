@@ -69,7 +69,7 @@ def _segm_berniwal_swimtransformer(name, backbone_name, num_classes, output_stri
     backbone = berniwal_swintransformer.swin_b(num_classes=num_classes)
 
     inplanes = 1024 #768, swin_t, swin_s, 1024, swin_b, 1536 swin_l
-    low_level_planes = 192
+    low_level_planes = 192 #192, swin_t, swin_s, 256, swin_b, 384 swin_l
 
     if name=='deeplabv3plus':
         return_layers = {'stage4': 'out', 'stage2': 'low_level'}
