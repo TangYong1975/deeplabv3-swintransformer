@@ -19,20 +19,21 @@ from PIL import Image
 import matplotlib
 import matplotlib.pyplot as plt
 
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 def get_argparser():
     parser = argparse.ArgumentParser()
 
     # Datset Options
-    parser.add_argument("--data_root", type=str, default='./datasets/data',
+    parser.add_argument("--data_root", type=str, default='./datasets/data/CameraBase',
                         help="path to Dataset")
     parser.add_argument("--dataset", type=str, default='voc',
                         choices=['voc', 'cityscapes'], help='Name of dataset')
-    parser.add_argument("--num_classes", type=int, default=21,
+    parser.add_argument("--num_classes", type=int, default=2,
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3_berniwal_swimtransformer',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_mobilenet',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
@@ -57,9 +58,9 @@ def get_argparser():
                         help='crop validation (default: False)')
     parser.add_argument("--batch_size", type=int, default=2, #16, swin_t, 2, swin_b
                         help='batch size (default: 16)')
-    parser.add_argument("--val_batch_size", type=int, default=8,
+    parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=448)
+    parser.add_argument("--crop_size", type=int, default=768)
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
@@ -239,9 +240,9 @@ def main():
     
     train_dst, val_dst = get_dataset(opts)
     train_loader = data.DataLoader(
-        train_dst, batch_size=opts.batch_size, shuffle=True, num_workers=2)
+        train_dst, batch_size=opts.batch_size, shuffle=True, num_workers=0)
     val_loader = data.DataLoader(
-        val_dst, batch_size=opts.val_batch_size, shuffle=True, num_workers=2)
+        val_dst, batch_size=opts.val_batch_size, shuffle=True, num_workers=0)
     print("Dataset: %s, Train set: %d, Val set: %d" %
           (opts.dataset, len(train_dst), len(val_dst)))
 

@@ -8,4 +8,5 @@ note：
 3. deeplabv3plus for microsoft swin-transformer;
 4. modify WindowAttention of berniwal swin-transformer by my thinking.
 5. explanation by Issues 1
+6. add dataset named 'CameraBase' for test
 
