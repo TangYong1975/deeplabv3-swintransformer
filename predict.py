@@ -24,15 +24,15 @@ def get_argparser():
     parser = argparse.ArgumentParser()
 
     # Datset Options
-    parser.add_argument("--input", type=str, default='datasets/data/VOCdevkit/VOC2012/JPEGImages', 
+    parser.add_argument("--input", type=str, default='datasets/data/CameraBase/VOCdevkit/VOC2012/JPEGImages', 
                         help="path to a single image or image directory")
     parser.add_argument("--dataset", type=str, default='voc',
                         choices=['voc', 'cityscapes'], help='Name of training set')
-    parser.add_argument("--num_classes", type=int, default=21,
+    parser.add_argument("--num_classes", type=int, default=2,
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_berniwal_swimtransformer',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_mobilenet',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
@@ -43,7 +43,7 @@ def get_argparser():
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
 
     # Train Options
-    parser.add_argument("--save_val_results_to", default="datasets/data/VOCdevkit/VOC2012/Output",
+    parser.add_argument("--save_val_results_to", default="datasets/data/CameraBase/VOCdevkit/VOC2012/Output",
                         help="save segmentation results to the specified dir")
 
     parser.add_argument("--crop_val", action='store_true', default=False,
@@ -53,7 +53,7 @@ def get_argparser():
     parser.add_argument("--crop_size", type=int, default=448)
 
     
-    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_berniwal_swimtransformer_voc_os16.pth', type=str,
+    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_mobilenet_voc_os16.pth', type=str,
                         help="resume from checkpoint")
     parser.add_argument("--gpu_id", type=str, default='0',
                         help="GPU ID")
