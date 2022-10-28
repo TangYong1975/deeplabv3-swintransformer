@@ -88,7 +88,7 @@ def get_argparser():
     # Visdom options
     # visdom -port 28333
     # http://localhost:28333/
-    parser.add_argument("--enable_vis", action='store_true', default=True,
+    parser.add_argument("--enable_vis", action='store_true', default=False,
                         help="use visdom for visualization")
     parser.add_argument("--vis_port", type=str, default='28333',
                         help='port for visdom')
