@@ -4,6 +4,8 @@ from .backbone import resnet
 from .backbone import mobilenetv2
 from .backbone import berniwal_swintransformer
 from .backbone import microsoft_swintransformer
+from .backbone import hrnetv2
+from .backbone import xception
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -104,6 +106,51 @@ def _segm_microsoft_swimtransformer(name, backbone_name, num_classes, output_str
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _segm_hrnet(name, backbone_name, num_classes, pretrained_backbone):
+
+    backbone = hrnetv2.__dict__[backbone_name](pretrained_backbone)
+    # HRNetV2 config:
+    # the final output channels is dependent on highest resolution channel config (c).
+    # output of backbone will be the inplanes to assp:
+    hrnet_channels = int(backbone_name.split('_')[-1])
+    inplanes = sum([hrnet_channels * 2 ** i for i in range(4)])
+    low_level_planes = 256 # all hrnet version channel output from bottleneck is the same
+    aspp_dilate = [12, 24, 36] # If follow paper trend, can put [24, 48, 72].
+
+    if name=='deeplabv3plus':
+        return_layers = {'stage4': 'out', 'layer1': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'stage4': 'out'}
+        classifier = DeepLabHead(inplanes, num_classes, aspp_dilate)
+
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers, hrnet_flag=True)
+    model = DeepLabV3(backbone, classifier)
+    return model
+
+def _segm_xception(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        replace_stride_with_dilation=[False, False, True, True]
+        aspp_dilate = [12, 24, 36]
+    else:
+        replace_stride_with_dilation=[False, False, False, True]
+        aspp_dilate = [6, 12, 18]
+    
+    backbone = xception.xception(pretrained= 'imagenet' if pretrained_backbone else False, replace_stride_with_dilation=replace_stride_with_dilation)
+    
+    inplanes = 2048
+    low_level_planes = 128
+    
+    if name=='deeplabv3plus':
+        return_layers = {'conv4': 'out', 'block1': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'conv4': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+    model = DeepLabV3(backbone, classifier)
+    return model
+
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
     if backbone=='mobilenetv2':
@@ -114,7 +161,11 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
         model = _segm_berniwal_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('microsoft_swimtransformer'):
         model = _segm_microsoft_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-    else:    
+    elif backbone.startswith('hrnetv2'):
+        model = _segm_hrnet(arch_type, backbone, num_classes, pretrained_backbone=pretrained_backbone)
+    elif backbone=='xception':
+        model = _segm_xception(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    else:
         raise NotImplementedError
     return model
 
@@ -151,6 +202,21 @@ def deeplabv3_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=Tru
     """
     return _load_model('deeplabv3', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=False): # no pretrained backbone yet
+    return _load_model('deeplabv3', 'hrnetv2_48', output_stride, num_classes, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'hrnetv2_32', output_stride, num_classes, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_xception(num_classes=21, output_stride=8, pretrained_backbone=True, **kwargs):
+    """Constructs a DeepLabV3 model with a Xception backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3', 'xception', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 # Deeplab v3+
 
@@ -228,4 +294,18 @@ def deeplabv3plus_microsoft_swimtransformer(num_classes=21, output_stride=8, pre
     """
     return _load_model('deeplabv3plus', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-    
+def deeplabv3plus_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=False): # no pretrained backbone yet
+    return _load_model('deeplabv3plus', 'hrnetv2_48', num_classes, output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'hrnetv2_32', num_classes, output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_xception(num_classes=21, output_stride=8, pretrained_backbone=True):
+    """Constructs a DeepLabV3+ model with a Xception backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3plus', 'xception', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)

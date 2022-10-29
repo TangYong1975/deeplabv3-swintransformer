@@ -33,12 +33,15 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_mobilenet',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_hrnetv2_32',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
                                  'deeplabv3_berniwal_swimtransformer', 'deeplabv3plus_berniwal_swimtransformer', 
-                                 'deeplabv3_microsoft_swimtransformer', 'deeplabv3plus_microsoft_swimtransformer'], help='model name')
+                                 'deeplabv3_microsoft_swimtransformer', 'deeplabv3plus_microsoft_swimtransformer'
+                                 'deeplabv3_hrnetv2_32',  'deeplabv3plus_hrnetv2_32',
+                                 'deeplabv3_hrnetv2_48',  'deeplabv3plus_hrnetv2_48',
+                                 'deeplabv3_xception',  'deeplabv3plus_xception'], help='model name')
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
@@ -247,7 +250,7 @@ def main():
           (opts.dataset, len(train_dst), len(val_dst)))
 
     # Set up model
-    model_map = {
+    model_map = {        
         'deeplabv3_resnet50': network.deeplabv3_resnet50,
         'deeplabv3plus_resnet50': network.deeplabv3plus_resnet50,
         'deeplabv3_resnet101': network.deeplabv3_resnet101,
@@ -257,7 +260,13 @@ def main():
         'deeplabv3_berniwal_swimtransformer': network.deeplabv3_berniwal_swimtransformer,
         'deeplabv3plus_berniwal_swimtransformer': network.deeplabv3plus_berniwal_swimtransformer,
         'deeplabv3_microsoft_swimtransformer': network.deeplabv3_microsoft_swimtransformer,
-        'deeplabv3plus_microsoft_swimtransformer': network.deeplabv3plus_microsoft_swimtransformer
+        'deeplabv3plus_microsoft_swimtransformer': network.deeplabv3plus_microsoft_swimtransformer,
+        'deeplabv3_hrnetv2_32': network.deeplabv3_hrnetv2_32,
+        'deeplabv3plus_hrnetv2_32': network.deeplabv3plus_hrnetv2_32,
+        'deeplabv3_hrnetv2_48': network.deeplabv3_hrnetv2_48,
+        'deeplabv3plus_hrnetv2_48': network.deeplabv3plus_hrnetv2_48,
+        'deeplabv3_xception': network.deeplabv3_xception,
+        'deeplabv3plus_xception': network.deeplabv3plus_xception
     }
 
     model = model_map[opts.model](num_classes=opts.num_classes, output_stride=opts.output_stride)

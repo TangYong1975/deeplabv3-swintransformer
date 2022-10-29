@@ -9,4 +9,5 @@ note：
 4. modify WindowAttention of berniwal swin-transformer by my thinking.
 5. explanation by Issues 1
 6. add dataset named 'CameraBase' for test
+7. add hrnet and exception, follow VainF
 
