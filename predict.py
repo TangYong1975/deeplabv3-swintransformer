@@ -32,7 +32,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_xception',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_resnet50',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
@@ -53,10 +53,10 @@ def get_argparser():
                         help='crop validation (default: False)')
     parser.add_argument("--val_batch_size", type=int, default=4,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=448)
+    parser.add_argument("--crop_size", type=int, default=416)
 
     
-    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_xception_voc_os16.pth', type=str,
+    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_resnet50_voc_os16.pth', type=str,
                         help="resume from checkpoint")
     parser.add_argument("--gpu_id", type=str, default='0',
                         help="GPU ID")

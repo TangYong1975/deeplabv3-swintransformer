@@ -33,7 +33,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_hrnetv2_32',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_resnet50',
                         choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
@@ -63,7 +63,7 @@ def get_argparser():
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=768)
+    parser.add_argument("--crop_size", type=int, default=416)
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
