@@ -63,7 +63,7 @@ def get_argparser():
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=416)
+    parser.add_argument("--crop_size", type=int, default=416) # swin-transformer, 7*x, for example, 448
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
