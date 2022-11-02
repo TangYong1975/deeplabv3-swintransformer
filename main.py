@@ -33,8 +33,9 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_resnet50',
-                        choices=['deeplabv3_resnet50',  'deeplabv3plus_resnet50',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_resnet18',
+                        choices=['deeplabv3_resnet18',  'deeplabv3plus_resnet18',
+                                 'deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet', 'deeplabv3plus_mobilenet',
                                  'deeplabv3_berniwal_swimtransformer', 'deeplabv3plus_berniwal_swimtransformer', 
@@ -251,6 +252,8 @@ def main():
 
     # Set up model
     model_map = {        
+        'deeplabv3_resnet18': network.deeplabv3_resnet18,
+        'deeplabv3plus_resnet18': network.deeplabv3plus_resnet18,
         'deeplabv3_resnet50': network.deeplabv3_resnet50,
         'deeplabv3plus_resnet50': network.deeplabv3plus_resnet50,
         'deeplabv3_resnet101': network.deeplabv3_resnet101,

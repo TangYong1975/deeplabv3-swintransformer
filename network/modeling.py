@@ -16,13 +16,20 @@ def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_bac
         replace_stride_with_dilation=[False, False, True]
         aspp_dilate = [6, 12, 18]
 
+    if backbone_name == "resnet18":
+        replace_stride_with_dilation=[False, False, False]
+        inplanes = 512
+        low_level_planes = 64
+
+    if backbone_name == "resnet50":
+        replace_stride_with_dilation=[False, False, True]
+        inplanes = 2048
+        low_level_planes = 256
+
     backbone = resnet.__dict__[backbone_name](
         pretrained=pretrained_backbone,
         replace_stride_with_dilation=replace_stride_with_dilation)
     
-    inplanes = 2048
-    low_level_planes = 256
-
     if name=='deeplabv3plus':
         return_layers = {'layer4': 'out', 'layer1': 'low_level'}
         classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
@@ -172,6 +179,16 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
 
 # Deeplab v3
 
+def deeplabv3_resnet18(num_classes=21, output_stride=8, pretrained_backbone=True):
+    """Constructs a DeepLabV3 model with a ResNet-50 backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3', 'resnet18', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 def deeplabv3_resnet50(num_classes=21, output_stride=8, pretrained_backbone=True):
     """Constructs a DeepLabV3 model with a ResNet-50 backbone.
 
@@ -220,6 +237,16 @@ def deeplabv3_xception(num_classes=21, output_stride=8, pretrained_backbone=True
 
 # Deeplab v3+
 
+def deeplabv3plus_resnet18(num_classes=21, output_stride=8, pretrained_backbone=True):
+    """Constructs a DeepLabV3 model with a ResNet-50 backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3plus', 'resnet18', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 def deeplabv3plus_resnet50(num_classes=21, output_stride=8, pretrained_backbone=True):
     """Constructs a DeepLabV3 model with a ResNet-50 backbone.
 
@@ -229,7 +256,6 @@ def deeplabv3plus_resnet50(num_classes=21, output_stride=8, pretrained_backbone=
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
     return _load_model('deeplabv3plus', 'resnet50', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-
 
 def deeplabv3plus_resnet101(num_classes=21, output_stride=8, pretrained_backbone=True):
     """Constructs a DeepLabV3+ model with a ResNet-101 backbone.
