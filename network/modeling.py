@@ -96,7 +96,7 @@ def _segm_microsoft_swimtransformer(name, backbone_name, num_classes, output_str
     else:
         aspp_dilate = [6, 12, 18]
 
-    backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448)
+    backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448) # img_size == crop_size
 
     inplanes = 768
     low_level_planes = 192

@@ -33,7 +33,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default='deeplabv3plus_resnet18',
+    parser.add_argument("--model", type=str, default='deeplabv3plus_berniwal_swimtransformer',
                         choices=['deeplabv3_resnet18',  'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50',  'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
@@ -64,7 +64,7 @@ def get_argparser():
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=416) # swin-transformer, 7*x, for example, 448
+    parser.add_argument("--crop_size", type=int, default=448) # swin-transformer, 7*x, for example, 448=7*64
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
