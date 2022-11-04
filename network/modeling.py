@@ -20,8 +20,7 @@ def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_bac
         replace_stride_with_dilation=[False, False, False]
         inplanes = 512
         low_level_planes = 64
-
-    if backbone_name == "resnet50":
+    else:
         replace_stride_with_dilation=[False, False, True]
         inplanes = 2048
         low_level_planes = 256
@@ -219,7 +218,7 @@ def deeplabv3_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=Tru
     """
     return _load_model('deeplabv3', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=False): # no pretrained backbone yet
+def deeplabv3_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=True): # no pretrained backbone yet
     return _load_model('deeplabv3', 'hrnetv2_48', output_stride, num_classes, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbone=True):
@@ -320,7 +319,7 @@ def deeplabv3plus_microsoft_swimtransformer(num_classes=21, output_stride=8, pre
     """
     return _load_model('deeplabv3plus', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3plus_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=False): # no pretrained backbone yet
+def deeplabv3plus_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=True): # no pretrained backbone yet
     return _load_model('deeplabv3plus', 'hrnetv2_48', num_classes, output_stride, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3plus_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbone=True):
