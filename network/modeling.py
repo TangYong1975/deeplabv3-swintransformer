@@ -1,11 +1,13 @@
 from .utils import IntermediateLayerGetter
 from ._deeplab import DeepLabHead, DeepLabHeadV3Plus, DeepLabV3
-from .backbone import resnet
-from .backbone import mobilenetv2
 from .backbone import berniwal_swintransformer
 from .backbone import microsoft_swintransformer
 from .backbone import hrnetv2
 from .backbone import xception
+
+from torchvision.models import resnet
+from torchvision.models import mobilenetv2
+from torchvision.models import regnet
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -46,7 +48,8 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
     else:
         aspp_dilate = [6, 12, 18]
 
-    backbone = mobilenetv2.mobilenet_v2(pretrained=pretrained_backbone, output_stride=output_stride)
+    if backbone_name == "mobilenet_v2": 
+        backbone = mobilenetv2.mobilenet_v2(pretrained=pretrained_backbone)
     
     # rename layers
     backbone.low_level_features = backbone.features[0:4]
@@ -68,16 +71,28 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
     model = DeepLabV3(backbone, classifier)
     return model
 
-def _segm_berniwal_swimtransformer(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+def _segm_berniwal_swintransformer(name, backbone_name, num_classes, output_stride, pretrained_backbone):
     if output_stride==8:
         aspp_dilate = [12, 24, 36]
     else:
         aspp_dilate = [6, 12, 18]
 
-    backbone = berniwal_swintransformer.swin_t(num_classes=num_classes)
-
-    inplanes = 768 #768, swin_t, swin_s, 1024, swin_b, 1536 swin_l
-    low_level_planes = 192 #192, swin_t, swin_s, 256, swin_b, 384 swin_l
+    if backbone_name == "berniwal_swintransformer_swin_t":
+        inplanes = 768
+        low_level_planes = 192
+        backbone = berniwal_swintransformer.swin_t(num_classes=num_classes)
+    elif backbone_name == "berniwal_swintransformer_swin_s":
+        inplanes = 768
+        low_level_planes = 192
+        backbone = berniwal_swintransformer.swin_s(num_classes=num_classes)
+    elif backbone_name == "berniwal_swintransformer_swin_b":
+        inplanes = 1024
+        low_level_planes = 256
+        backbone = berniwal_swintransformer.swin_b(num_classes=num_classes)
+    else:
+        inplanes = 1536
+        low_level_planes = 384
+        backbone = berniwal_swintransformer.swin_l(num_classes=num_classes)
 
     if name=='deeplabv3plus':
         return_layers = {'stage4': 'out', 'stage2': 'low_level'}
@@ -90,18 +105,30 @@ def _segm_berniwal_swimtransformer(name, backbone_name, num_classes, output_stri
     model = DeepLabV3(backbone, classifier)
     return model
 
-def _segm_microsoft_swimtransformer(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+def _segm_microsoft_swintransformer(name, backbone_name, num_classes, output_stride, pretrained_backbone):
     if output_stride==8:
         aspp_dilate = [12, 24, 36]
     else:
         aspp_dilate = [6, 12, 18]
-
-    backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448) # img_size == crop_size
-
-    inplanes = 768
-    low_level_planes = 192
-
-    if name=='deeplabv3plus': # NotImplementedError
+   
+    if backbone_name == "microsoft_swintransformer_swin_t":
+        inplanes = 768
+        low_level_planes = 192
+        backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448) # img_size == crop_size
+    elif backbone_name == "microsoft_swintransformer_swin_s":
+        inplanes = 768
+        low_level_planes = 192
+        backbone = microsoft_swintransformer.swin_s(num_classes=num_classes, img_size=448)
+    elif backbone_name == "microsoft_swintransformer_swin_b":
+        inplanes = 1024
+        low_level_planes = 256
+        backbone = microsoft_swintransformer.swin_b(num_classes=num_classes, img_size=448)
+    else:
+        inplanes = 1536
+        low_level_planes = 384
+        backbone = microsoft_swintransformer.swin_l(num_classes=num_classes, img_size=448)
+    
+    if name=='deeplabv3plus':
         return_layers = {'stage4': 'out', 'stage2': 'low_level'}
         classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
     elif name=='deeplabv3':
@@ -129,8 +156,8 @@ def _segm_hrnet(name, backbone_name, num_classes, pretrained_backbone):
     elif name=='deeplabv3':
         return_layers = {'stage4': 'out'}
         classifier = DeepLabHead(inplanes, num_classes, aspp_dilate)
-
     backbone = IntermediateLayerGetter(backbone, return_layers=return_layers, hrnet_flag=True)
+    
     model = DeepLabV3(backbone, classifier)
     return model
 
@@ -154,23 +181,62 @@ def _segm_xception(name, backbone_name, num_classes, output_stride, pretrained_b
         return_layers = {'conv4': 'out'}
         classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
     backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+    
+    model = DeepLabV3(backbone, classifier)
+    return model
+
+def _segm_regnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        aspp_dilate = [12, 24, 36]
+    else:
+        aspp_dilate = [6, 12, 18]
+    
+    backbone = regnet.__dict__[backbone_name](
+        pretrained=pretrained_backbone)
+    
+    backbone.low_level_features = backbone.trunk_output[0:2]
+    backbone.high_level_features = backbone.trunk_output[2:-1]
+    backbone.trunk_output = None
+    backbone.avgpool = None
+    backbone.fc = None
+    
+    if backbone_name == "regnet_y_400mf":
+        inplanes = 208
+        low_level_planes = 104
+    elif backbone_name == "regnet_y_8gf":
+        inplanes = 896
+        low_level_planes = 448
+    else:
+        inplanes = 1392
+        low_level_planes = 696
+    
+    if name=='deeplabv3plus':
+        return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'high_level_features': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+
     model = DeepLabV3(backbone, classifier)
     return model
 
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
-    if backbone=='mobilenetv2':
+    if backbone.startswith('mobilenet'):
         model = _segm_mobilenet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('resnet'):
         model = _segm_resnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-    elif backbone.startswith('berniwal_swimtransformer'):
-        model = _segm_berniwal_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-    elif backbone.startswith('microsoft_swimtransformer'):
-        model = _segm_microsoft_swimtransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('berniwal_swintransformer'):
+        model = _segm_berniwal_swintransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('microsoft_swintransformer'):
+        model = _segm_microsoft_swintransformer(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('hrnetv2'):
         model = _segm_hrnet(arch_type, backbone, num_classes, pretrained_backbone=pretrained_backbone)
     elif backbone=='xception':
         model = _segm_xception(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('regnet'):
+        model = _segm_regnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     else:
         raise NotImplementedError
     return model
@@ -208,7 +274,7 @@ def deeplabv3_resnet101(num_classes=21, output_stride=8, pretrained_backbone=Tru
     """
     return _load_model('deeplabv3', 'resnet101', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=True, **kwargs):
+def deeplabv3_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=True, **kwargs):
     """Constructs a DeepLabV3 model with a MobileNetv2 backbone.
 
     Args:
@@ -216,7 +282,31 @@ def deeplabv3_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=Tru
         output_stride (int): output stride for deeplab.
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
-    return _load_model('deeplabv3', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    return _load_model('deeplabv3', 'mobilenet_v2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_berniwal_swintransformer_swin_s(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'berniwal_swintransformer_swin_s', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_berniwal_swintransformer_swin_b(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'berniwal_swintransformer_swin_b', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_berniwal_swintransformer_swin_l(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'berniwal_swintransformer_swin_l', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_microsoft_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'microsoft_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_microsoft_swintransformer_swin_s(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'microsoft_swintransformer_swin_s', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_microsoft_swintransformer_swin_b(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'microsoft_swintransformer_swin_b', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_microsoft_swintransformer_swin_l(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'microsoft_swintransformer_swin_l', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=True): # no pretrained backbone yet
     return _load_model('deeplabv3', 'hrnetv2_48', output_stride, num_classes, pretrained_backbone=pretrained_backbone)
@@ -225,14 +315,16 @@ def deeplabv3_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbone=Tr
     return _load_model('deeplabv3', 'hrnetv2_32', output_stride, num_classes, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3_xception(num_classes=21, output_stride=8, pretrained_backbone=True, **kwargs):
-    """Constructs a DeepLabV3 model with a Xception backbone.
-
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
     return _load_model('deeplabv3', 'xception', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_regnet_y_400mf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'regnet_y_400mf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_regnet_y_8gf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'regnet_y_8gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_regnet_y_32gf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'regnet_y_32gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 # Deeplab v3+
 
@@ -267,7 +359,7 @@ def deeplabv3plus_resnet101(num_classes=21, output_stride=8, pretrained_backbone
     return _load_model('deeplabv3plus', 'resnet101', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 
-def deeplabv3plus_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=True):
+def deeplabv3plus_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=True):
     """Constructs a DeepLabV3+ model with a MobileNetv2 backbone.
 
     Args:
@@ -275,49 +367,31 @@ def deeplabv3plus_mobilenet(num_classes=21, output_stride=8, pretrained_backbone
         output_stride (int): output stride for deeplab.
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
-    return _load_model('deeplabv3plus', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    return _load_model('deeplabv3plus', 'mobilenet_v2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3plus_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3plus_berniwal_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a Berniwal Swin-Transformer backbone.
+def deeplabv3plus_berniwal_swintransformer_swin_s(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_s', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
-    return _load_model('deeplabv3plus', 'berniwal_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+def deeplabv3plus_berniwal_swintransformer_swin_b(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_b', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3plus_berniwal_swintransformer_swin_l(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_l', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3_berniwal_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a Berniwal Swin-Transformer backbone.
+def deeplabv3plus_microsoft_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'microsoft_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
-    return _load_model('deeplabv3', 'berniwal_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+def deeplabv3plus_microsoft_swintransformer_swin_s(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'microsoft_swintransformer_swin_s', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-def deeplabv3_microsoft_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a Microsoft Swin-Transformer backbone.
+def deeplabv3plus_microsoft_swintransformer_swin_b(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'microsoft_swintransformer_swin_b', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
-    return _load_model('deeplabv3', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
-
-def deeplabv3plus_microsoft_swimtransformer(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a Microsoft Swin-Transformer backbone.
-
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
-    return _load_model('deeplabv3plus', 'microsoft_swimtransformer', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+def deeplabv3plus_microsoft_swintransformer_swin_l(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'microsoft_swintransformer_swin_l', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3plus_hrnetv2_48(num_classes=21, output_stride=4, pretrained_backbone=True): # no pretrained backbone yet
     return _load_model('deeplabv3plus', 'hrnetv2_48', num_classes, output_stride, pretrained_backbone=pretrained_backbone)
@@ -326,11 +400,13 @@ def deeplabv3plus_hrnetv2_32(num_classes=21, output_stride=4, pretrained_backbon
     return _load_model('deeplabv3plus', 'hrnetv2_32', num_classes, output_stride, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3plus_xception(num_classes=21, output_stride=8, pretrained_backbone=True):
-    """Constructs a DeepLabV3+ model with a Xception backbone.
-
-    Args:
-        num_classes (int): number of classes.
-        output_stride (int): output stride for deeplab.
-        pretrained_backbone (bool): If True, use the pretrained backbone.
-    """
     return _load_model('deeplabv3plus', 'xception', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_regnet_y_400mf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'regnet_y_400mf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_regnet_y_8gf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'regnet_y_8gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_regnet_y_32gf(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'regnet_y_32gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
