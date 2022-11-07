@@ -9,6 +9,7 @@ from torchvision.models import resnet
 from torchvision.models import mobilenetv2
 from torchvision.models import mobilenetv3
 from torchvision.models import regnet
+from torchvision.models import vgg
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -72,14 +73,14 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
 
     elif backbone_name == "mobilenet_v3_large":    
         backbone = mobilenetv3.mobilenet_v3_large(pretrained=pretrained_backbone)
-        backbone.low_level_features = backbone.features[0:6]
-        backbone.high_level_features = backbone.features[6:-1]
+        backbone.low_level_features = backbone.features[0:8]
+        backbone.high_level_features = backbone.features[8:-1]
         backbone.features = None
         backbone.avgpool = None
         backbone.classifier = None
 
         inplanes = 160
-        low_level_planes = 40
+        low_level_planes = 80
 
     else:
         raise NotImplementedError(backbone_name)
@@ -245,6 +246,44 @@ def _segm_regnet(name, backbone_name, num_classes, output_stride, pretrained_bac
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _segm_vggnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        aspp_dilate = [12, 24, 36]
+    else:
+        aspp_dilate = [6, 12, 18]
+
+    if backbone_name == "vgg11_bn": 
+        backbone = vgg.vgg11_bn(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:15]
+        backbone.high_level_features = backbone.features[15:-1]
+    elif backbone_name == "vgg16_bn":    
+        backbone = vgg.vgg16_bn(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:24]
+        backbone.high_level_features = backbone.features[24:-1]
+    elif backbone_name == "vgg19_bn":    
+        backbone = vgg.vgg19_bn(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:27]
+        backbone.high_level_features = backbone.features[27:-1]
+    else:
+        raise NotImplementedError(backbone_name)
+    
+    backbone.features = None
+    backbone.avgpool = None
+    backbone.classifier = None
+    inplanes = 512
+    low_level_planes = 256
+   
+    if name=='deeplabv3plus':
+        return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'high_level_features': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+
+    model = DeepLabV3(backbone, classifier)
+    return model
+
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
     if backbone.startswith('mobilenet'):
@@ -261,6 +300,8 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
         model = _segm_xception(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('regnet'):
         model = _segm_regnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('vgg'):
+        model = _segm_vggnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     else:
         raise NotImplementedError
     return model
@@ -356,6 +397,15 @@ def deeplabv3_regnet_y_8gf(num_classes=21, output_stride=8, pretrained_backbone=
 def deeplabv3_regnet_y_32gf(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'regnet_y_32gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_vgg11_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'vgg11_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_vgg16_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'vgg16_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_vgg19_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'vgg19_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 # Deeplab v3+
 
 def deeplabv3plus_resnet18(num_classes=21, output_stride=8, pretrained_backbone=True):
@@ -446,3 +496,12 @@ def deeplabv3plus_regnet_y_8gf(num_classes=21, output_stride=8, pretrained_backb
 
 def deeplabv3plus_regnet_y_32gf(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'regnet_y_32gf', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_vgg11_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'vgg11_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_vgg16_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'vgg16_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_vgg19_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'vgg19_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
