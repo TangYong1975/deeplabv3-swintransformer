@@ -37,6 +37,8 @@ def get_argparser():
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
                                  'deeplabv3_mobilenet_v2', 'deeplabv3plus_mobilenet_v2',
+                                 'deeplabv3_mobilenet_v3_small', 'deeplabv3plus_mobilenet_v3_small',
+                                 'deeplabv3_mobilenet_v3_large', 'deeplabv3plus_mobilenet_v3_large',
                                  'deeplabv3_berniwal_swintransformer_swin_t', 'deeplabv3plus_berniwal_swintransformer_swin_t'
                                  'deeplabv3_berniwal_swintransformer_swin_s', 'deeplabv3plus_berniwal_swintransformer_swin_s'
                                  'deeplabv3_berniwal_swintransformer_swin_b', 'deeplabv3plus_berniwal_swintransformer_swin_b'
@@ -107,6 +109,10 @@ def main():
         'deeplabv3plus_resnet101': network.deeplabv3plus_resnet101,
         'deeplabv3_mobilenet_v2': network.deeplabv3_mobilenet_v2,
         'deeplabv3plus_mobilenet_v2': network.deeplabv3plus_mobilenet_v2,
+        'deeplabv3_mobilenet_v3_small': network.deeplabv3_mobilenet_v3_small,
+        'deeplabv3plus_mobilenet_v3_small': network.deeplabv3plus_mobilenet_v3_small,
+        'deeplabv3_mobilenet_v3_large': network.deeplabv3_mobilenet_v3_large,
+        'deeplabv3plus_mobilenet_v3_large': network.deeplabv3plus_mobilenet_v3_large,
         'deeplabv3_berniwal_swintransformer_swin_t': network.deeplabv3_berniwal_swintransformer_swin_t,
         'deeplabv3_berniwal_swintransformer_swin_s': network.deeplabv3_berniwal_swintransformer_swin_s,
         'deeplabv3_berniwal_swintransformer_swin_b': network.deeplabv3_berniwal_swintransformer_swin_b,

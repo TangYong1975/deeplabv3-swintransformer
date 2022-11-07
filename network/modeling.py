@@ -7,6 +7,7 @@ from .backbone import xception
 
 from torchvision.models import resnet
 from torchvision.models import mobilenetv2
+from torchvision.models import mobilenetv3
 from torchvision.models import regnet
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
@@ -50,15 +51,38 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
 
     if backbone_name == "mobilenet_v2": 
         backbone = mobilenetv2.mobilenet_v2(pretrained=pretrained_backbone)
-    
-    # rename layers
-    backbone.low_level_features = backbone.features[0:4]
-    backbone.high_level_features = backbone.features[4:-1]
-    backbone.features = None
-    backbone.classifier = None
+        backbone.low_level_features = backbone.features[0:4]
+        backbone.high_level_features = backbone.features[4:-1]
+        backbone.features = None
+        backbone.classifier = None
 
-    inplanes = 320
-    low_level_planes = 24
+        inplanes = 320
+        low_level_planes = 24
+
+    elif backbone_name == "mobilenet_v3_small":    
+        backbone = mobilenetv3.mobilenet_v3_small(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:6]
+        backbone.high_level_features = backbone.features[6:-1]
+        backbone.features = None
+        backbone.avgpool = None
+        backbone.classifier = None
+
+        inplanes = 96
+        low_level_planes = 40
+
+    elif backbone_name == "mobilenet_v3_large":    
+        backbone = mobilenetv3.mobilenet_v3_large(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:6]
+        backbone.high_level_features = backbone.features[6:-1]
+        backbone.features = None
+        backbone.avgpool = None
+        backbone.classifier = None
+
+        inplanes = 160
+        low_level_planes = 40
+
+    else:
+        raise NotImplementedError(backbone_name)
     
     if name=='deeplabv3plus':
         return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
@@ -284,6 +308,12 @@ def deeplabv3_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=
     """
     return _load_model('deeplabv3', 'mobilenet_v2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_mobilenet_v3_small(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'mobilenet_v3_small', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_mobilenet_v3_large(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'mobilenet_v3_large', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 def deeplabv3_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
@@ -368,6 +398,12 @@ def deeplabv3plus_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backb
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
     return _load_model('deeplabv3plus', 'mobilenet_v2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_mobilenet_v3_small(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'mobilenet_v3_small', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_mobilenet_v3_large(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'mobilenet_v3_large', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3plus_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)

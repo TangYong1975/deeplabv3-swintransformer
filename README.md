@@ -12,4 +12,5 @@ note：
 7. add hrnet and exception, follow VainF
 8. add resnet18
 9. add regnet (y_400mf, y_8gf, y_32gf), swin-transformer into (swin_t, swin_s, swin_b, swin_l), use resnet and mobilenet from pytorch
+10. add mobilenet_v3(small, large)
 
