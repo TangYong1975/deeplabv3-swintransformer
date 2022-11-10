@@ -10,6 +10,7 @@ from torchvision.models import mobilenetv2
 from torchvision.models import mobilenetv3
 from torchvision.models import regnet
 from torchvision.models import vgg
+from torchvision.models import shufflenetv2
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -54,37 +55,30 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
         backbone = mobilenetv2.mobilenet_v2(pretrained=pretrained_backbone)
         backbone.low_level_features = backbone.features[0:4]
         backbone.high_level_features = backbone.features[4:-1]
-        backbone.features = None
-        backbone.classifier = None
 
         inplanes = 320
         low_level_planes = 24
-
     elif backbone_name == "mobilenet_v3_small":    
         backbone = mobilenetv3.mobilenet_v3_small(pretrained=pretrained_backbone)
         backbone.low_level_features = backbone.features[0:6]
         backbone.high_level_features = backbone.features[6:-1]
-        backbone.features = None
-        backbone.avgpool = None
-        backbone.classifier = None
 
         inplanes = 96
         low_level_planes = 40
-
     elif backbone_name == "mobilenet_v3_large":    
         backbone = mobilenetv3.mobilenet_v3_large(pretrained=pretrained_backbone)
         backbone.low_level_features = backbone.features[0:8]
         backbone.high_level_features = backbone.features[8:-1]
-        backbone.features = None
-        backbone.avgpool = None
-        backbone.classifier = None
-
+ 
         inplanes = 160
         low_level_planes = 80
-
     else:
         raise NotImplementedError(backbone_name)
-    
+
+    backbone.features = None
+    backbone.avgpool = None
+    backbone.classifier = None
+
     if name=='deeplabv3plus':
         return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
         classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
@@ -103,21 +97,21 @@ def _segm_berniwal_swintransformer(name, backbone_name, num_classes, output_stri
         aspp_dilate = [6, 12, 18]
 
     if backbone_name == "berniwal_swintransformer_swin_t":
-        inplanes = 768
-        low_level_planes = 192
         backbone = berniwal_swintransformer.swin_t(num_classes=num_classes)
-    elif backbone_name == "berniwal_swintransformer_swin_s":
         inplanes = 768
         low_level_planes = 192
+    elif backbone_name == "berniwal_swintransformer_swin_s":
         backbone = berniwal_swintransformer.swin_s(num_classes=num_classes)
+        inplanes = 768
+        low_level_planes = 192
     elif backbone_name == "berniwal_swintransformer_swin_b":
+        backbone = berniwal_swintransformer.swin_b(num_classes=num_classes)
         inplanes = 1024
         low_level_planes = 256
-        backbone = berniwal_swintransformer.swin_b(num_classes=num_classes)
     else:
+        backbone = berniwal_swintransformer.swin_l(num_classes=num_classes)
         inplanes = 1536
         low_level_planes = 384
-        backbone = berniwal_swintransformer.swin_l(num_classes=num_classes)
 
     if name=='deeplabv3plus':
         return_layers = {'stage4': 'out', 'stage2': 'low_level'}
@@ -137,21 +131,21 @@ def _segm_microsoft_swintransformer(name, backbone_name, num_classes, output_str
         aspp_dilate = [6, 12, 18]
    
     if backbone_name == "microsoft_swintransformer_swin_t":
-        inplanes = 768
-        low_level_planes = 192
         backbone = microsoft_swintransformer.swin_t(num_classes=num_classes, img_size=448) # img_size == crop_size
-    elif backbone_name == "microsoft_swintransformer_swin_s":
         inplanes = 768
         low_level_planes = 192
+    elif backbone_name == "microsoft_swintransformer_swin_s":
         backbone = microsoft_swintransformer.swin_s(num_classes=num_classes, img_size=448)
+        inplanes = 768
+        low_level_planes = 192
     elif backbone_name == "microsoft_swintransformer_swin_b":
+        backbone = microsoft_swintransformer.swin_b(num_classes=num_classes, img_size=448)
         inplanes = 1024
         low_level_planes = 256
-        backbone = microsoft_swintransformer.swin_b(num_classes=num_classes, img_size=448)
     else:
+        backbone = microsoft_swintransformer.swin_l(num_classes=num_classes, img_size=448)
         inplanes = 1536
         low_level_planes = 384
-        backbone = microsoft_swintransformer.swin_l(num_classes=num_classes, img_size=448)
     
     if name=='deeplabv3plus':
         return_layers = {'stage4': 'out', 'stage2': 'low_level'}
@@ -215,25 +209,27 @@ def _segm_regnet(name, backbone_name, num_classes, output_stride, pretrained_bac
         aspp_dilate = [12, 24, 36]
     else:
         aspp_dilate = [6, 12, 18]
-    
-    backbone = regnet.__dict__[backbone_name](
-        pretrained=pretrained_backbone)
-    
+           
+    if backbone_name == "regnet_y_400mf":
+        backbone = regnet.regnet_y_400mf(pretrained=pretrained_backbone)
+        inplanes = 440
+        low_level_planes = 104
+    elif backbone_name == "regnet_y_8gf":
+        backbone = regnet.regnet_y_8gf(pretrained=pretrained_backbone)
+        inplanes = 2016
+        low_level_planes = 448
+    elif backbone_name == "regnet_y_32gf":
+        backbone = regnet.regnet_y_32gf(pretrained=pretrained_backbone)
+        inplanes = 3712
+        low_level_planes = 696
+    else:
+        raise NotImplementedError(backbone_name)
+
     backbone.low_level_features = backbone.trunk_output[0:2]
-    backbone.high_level_features = backbone.trunk_output[2:-1]
+    backbone.high_level_features = backbone.trunk_output[2:4]
     backbone.trunk_output = None
     backbone.avgpool = None
     backbone.fc = None
-    
-    if backbone_name == "regnet_y_400mf":
-        inplanes = 208
-        low_level_planes = 104
-    elif backbone_name == "regnet_y_8gf":
-        inplanes = 896
-        low_level_planes = 448
-    else:
-        inplanes = 1392
-        low_level_planes = 696
     
     if name=='deeplabv3plus':
         return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
@@ -284,6 +280,37 @@ def _segm_vggnet(name, backbone_name, num_classes, output_stride, pretrained_bac
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _segm_shufflenet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        aspp_dilate = [12, 24, 36]
+    else:
+        aspp_dilate = [6, 12, 18]
+
+    if backbone_name == "shufflenet_v2_x0_5": 
+        backbone = shufflenetv2.shufflenet_v2_x0_5(pretrained=pretrained_backbone)
+        inplanes = 192
+        low_level_planes = 48
+    elif backbone_name == "shufflenet_v2_x1_0":    
+        backbone = shufflenetv2.shufflenet_v2_x1_0(pretrained=pretrained_backbone)
+        inplanes = 464
+        low_level_planes = 116
+    else:
+        raise NotImplementedError(backbone_name)
+    
+    backbone.conv5 = None
+    backbone.fc = None
+
+    if name=='deeplabv3plus':
+        return_layers = {'stage4': 'out', 'stage2': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'stage4': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+
+    model = DeepLabV3(backbone, classifier)
+    return model
+
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
     if backbone.startswith('mobilenet'):
@@ -302,6 +329,8 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
         model = _segm_regnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('vgg'):
         model = _segm_vggnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('shufflenet'):
+        model = _segm_shufflenet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     else:
         raise NotImplementedError
     return model
@@ -406,6 +435,15 @@ def deeplabv3_vgg16_bn(num_classes=21, output_stride=8, pretrained_backbone=True
 def deeplabv3_vgg19_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'vgg19_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_shufflenet_v2_x0_5(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'shufflenet_v2_x0_5', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_shufflenet_v2_x1_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'shufflenet_v2_x1_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_shufflenet_v2_x2_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'shufflenet_v2_x2_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 # Deeplab v3+
 
 def deeplabv3plus_resnet18(num_classes=21, output_stride=8, pretrained_backbone=True):
@@ -505,3 +543,12 @@ def deeplabv3plus_vgg16_bn(num_classes=21, output_stride=8, pretrained_backbone=
 
 def deeplabv3plus_vgg19_bn(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'vgg19_bn', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_shufflenet_v2_x0_5(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'shufflenet_v2_x0_5', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_shufflenet_v2_x1_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'shufflenet_v2_x1_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_shufflenet_v2_x2_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'shufflenet_v2_x2_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)

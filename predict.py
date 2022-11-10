@@ -55,7 +55,9 @@ def get_argparser():
                                  'deeplabv3_regnet_y_32gf', 'deeplabv3plus_regnet_y_32gf',
                                  'deeplabv3_vgg11_bn', 'deeplabv3plus_vgg11_bn',
                                  'deeplabv3_vgg16_bn', 'deeplabv3plus_vgg16_bn',
-                                 'deeplabv3_vgg19_bn', 'deeplabv3plus_vgg19_bn'], help='model name')
+                                 'deeplabv3_vgg19_bn', 'deeplabv3plus_vgg19_bn',
+                                 'deeplabv3_shufflenet_v2_x0_5', 'deeplabv3plus_shufflenet_v2_x0_5',
+                                 'deeplabv3_shufflenet_v2_x1_0', 'deeplabv3plus_shufflenet_v2_x1_0'], help='model name')
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
@@ -149,8 +151,12 @@ def main():
             'deeplabv3_vgg16_bn': network.deeplabv3_vgg16_bn,
             'deeplabv3plus_vgg16_bn': network.deeplabv3plus_vgg16_bn,
             'deeplabv3_vgg19_bn': network.deeplabv3_vgg19_bn,
-            'deeplabv3plus_vgg19_bn': network.deeplabv3plus_vgg19_bn
-        }
+            'deeplabv3plus_vgg19_bn': network.deeplabv3plus_vgg19_bn,
+            'deeplabv3_shufflenet_v2_x0_5': network.deeplabv3_shufflenet_v2_x0_5,
+            'deeplabv3plus_shufflenet_v2_x0_5': network.deeplabv3plus_shufflenet_v2_x0_5,
+            'deeplabv3_shufflenet_v2_x1_0': network.deeplabv3_shufflenet_v2_x1_0,
+            'deeplabv3plus_shufflenet_v2_x1_0': network.deeplabv3plus_shufflenet_v2_x1_0
+            }
 
     model = model_map[opts.model](num_classes=opts.num_classes, output_stride=opts.output_stride)
     if opts.separable_conv and 'plus' in opts.model:

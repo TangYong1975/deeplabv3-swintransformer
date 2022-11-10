@@ -14,4 +14,5 @@ note：
 9. add regnet (y_400mf, y_8gf, y_32gf), swin-transformer into (swin_t, swin_s, swin_b, swin_l), use resnet and mobilenet from pytorch
 10. add mobilenet_v3(small, large)
 11. add vggnet(vgg11_bn, vgg16_bn, vgg19_bn)
+12. add shufflenetv2(x0_5, x1_0)
 
