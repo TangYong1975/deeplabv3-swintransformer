@@ -33,7 +33,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default = 'deeplabv3plus_shufflenet_v2_x1_0',
+    parser.add_argument("--model", type=str, default = 'deeplabv3plus_regnet_y_32gf',
                         choices=['deeplabv3_resnet18', 'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
