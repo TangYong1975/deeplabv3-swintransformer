@@ -15,4 +15,4 @@ note：
 10. add mobilenet_v3(small, large)
 11. add vggnet(vgg11_bn, vgg16_bn, vgg19_bn)
 12. add shufflenetv2(x0_5, x1_0)
-
+13. result(resnet50) for voc
