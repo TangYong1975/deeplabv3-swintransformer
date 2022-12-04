@@ -16,3 +16,4 @@ note：
 11. add vggnet(vgg11_bn, vgg16_bn, vgg19_bn)
 12. add shufflenetv2(x0_5, x1_0)
 13. result(resnet50) for voc
+14. add ghostnetv2(1_0, 1_3, 1_6)

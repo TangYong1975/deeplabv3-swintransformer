@@ -4,6 +4,7 @@ from .backbone import berniwal_swintransformer
 from .backbone import microsoft_swintransformer
 from .backbone import hrnetv2
 from .backbone import xception
+from .backbone import ghostnetv2
 
 from torchvision.models import resnet
 from torchvision.models import mobilenetv2
@@ -72,7 +73,7 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
  
         inplanes = 160
         low_level_planes = 80
-    else:
+    else:        
         raise NotImplementedError(backbone_name)
 
     backbone.features = None
@@ -311,6 +312,47 @@ def _segm_shufflenet(name, backbone_name, num_classes, output_stride, pretrained
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _segm_ghostnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+    if output_stride==8:
+        aspp_dilate = [12, 24, 36]
+    else:
+        aspp_dilate = [6, 12, 18]
+
+    if backbone_name == "ghostnet_v2_1_0":         
+        backbone = ghostnetv2.ghostnet_v2_1_0(num_classes)
+        inplanes = 160
+        low_level_planes = 40
+    elif backbone_name == "ghostnet_v2_1_3":         
+        backbone = ghostnetv2.ghostnet_v2_1_3(num_classes)
+        inplanes = 208
+        low_level_planes = 52
+    elif backbone_name == "ghostnet_v2_1_6":         
+        backbone = ghostnetv2.ghostnet_v2_1_6(num_classes)
+        inplanes = 256
+        low_level_planes = 64
+    else:
+        raise NotImplementedError(backbone_name)
+
+    backbone.low_level_features = backbone.blocks[0:5]
+    backbone.high_level_features = backbone.blocks[5:-1]
+
+    backbone.blocks = None
+    backbone.global_pool = None
+    backbone.conv_head = None
+    backbone.act2 = None
+    backbone.classifier = None
+    
+    if name=='deeplabv3plus':
+        return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
+        classifier = DeepLabHeadV3Plus(inplanes, low_level_planes, num_classes, aspp_dilate)
+    elif name=='deeplabv3':
+        return_layers = {'high_level_features': 'out'}
+        classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+
+    model = DeepLabV3(backbone, classifier)
+    return model
+
 def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
 
     if backbone.startswith('mobilenet'):
@@ -331,6 +373,8 @@ def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_back
         model = _segm_vggnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     elif backbone.startswith('shufflenet'):
         model = _segm_shufflenet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+    elif backbone.startswith('ghostnet'):
+        model = _segm_ghostnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     else:
         raise NotImplementedError
     return model
@@ -444,6 +488,15 @@ def deeplabv3_shufflenet_v2_x1_0(num_classes=21, output_stride=8, pretrained_bac
 def deeplabv3_shufflenet_v2_x2_0(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'shufflenet_v2_x2_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_ghostnet_v2_1_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'ghostnet_v2_1_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_ghostnet_v2_1_3(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'ghostnet_v2_1_3', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3_ghostnet_v2_1_6(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'ghostnet_v2_1_6', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
 # Deeplab v3+
 
 def deeplabv3plus_resnet18(num_classes=21, output_stride=8, pretrained_backbone=True):
@@ -552,3 +605,12 @@ def deeplabv3plus_shufflenet_v2_x1_0(num_classes=21, output_stride=8, pretrained
 
 def deeplabv3plus_shufflenet_v2_x2_0(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'shufflenet_v2_x2_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_ghostnet_v2_1_0(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'ghostnet_v2_1_0', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_ghostnet_v2_1_3(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'ghostnet_v2_1_3', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_ghostnet_v2_1_6(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'ghostnet_v2_1_6', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)

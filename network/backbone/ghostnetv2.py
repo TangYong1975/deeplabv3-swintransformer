@@ -240,7 +240,7 @@ class GhostNetV2(nn.Module):
 
 
 @register_model
-def ghostnetv2(**kwargs):
+def ghostnetv2(num_classes, width):
     cfgs = [
         # k, t, c, SE, s
         [[3, 16, 16, 0, 1]],
@@ -262,7 +262,13 @@ def ghostnetv2(**kwargs):
          [5, 960, 160, 0.25, 1]
          ]
     ]
-    return GhostNetV2(cfgs, num_classes=kwargs['num_classes'],
-                      width=kwargs['width'],
-                      dropout=kwargs['dropout'],
-                      args=kwargs['args'])
+    return GhostNetV2(cfgs, num_classes, width)
+
+def ghostnet_v2_1_0(num_classes=1000):
+    return ghostnetv2(num_classes,width=1.0)
+
+def ghostnet_v2_1_3(num_classes=1000):
+    return ghostnetv2(num_classes,width=1.3)
+
+def ghostnet_v2_1_6(num_classes=1000):
+    return ghostnetv2(num_classes,width=1.6)

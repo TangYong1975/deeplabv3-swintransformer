@@ -32,7 +32,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default = 'deeplabv3plus_regnet_y_32gf',
+    parser.add_argument("--model", type=str, default = 'deeplabv3plus_ghostnet_v2_1_0',
                         choices=['deeplabv3_resnet18', 'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
@@ -57,7 +57,10 @@ def get_argparser():
                                  'deeplabv3_vgg16_bn', 'deeplabv3plus_vgg16_bn',
                                  'deeplabv3_vgg19_bn', 'deeplabv3plus_vgg19_bn',
                                  'deeplabv3_shufflenet_v2_x0_5', 'deeplabv3plus_shufflenet_v2_x0_5',
-                                 'deeplabv3_shufflenet_v2_x1_0', 'deeplabv3plus_shufflenet_v2_x1_0'], help='model name')
+                                 'deeplabv3_shufflenet_v2_x1_0', 'deeplabv3plus_shufflenet_v2_x1_0',
+                                 'deeplabv3_ghostnet_v2_1_0', 'deeplabv3plus_ghostnet_v2_1_0',
+                                 'deeplabv3_ghostnet_v2_1_3', 'deeplabv3plus_ghostnet_v2_1_3',
+                                 'deeplabv3_ghostnet_v2_1_6', 'deeplabv3plus_ghostnet_v2_1_6'], help='model name')
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
@@ -155,7 +158,13 @@ def main():
             'deeplabv3_shufflenet_v2_x0_5': network.deeplabv3_shufflenet_v2_x0_5,
             'deeplabv3plus_shufflenet_v2_x0_5': network.deeplabv3plus_shufflenet_v2_x0_5,
             'deeplabv3_shufflenet_v2_x1_0': network.deeplabv3_shufflenet_v2_x1_0,
-            'deeplabv3plus_shufflenet_v2_x1_0': network.deeplabv3plus_shufflenet_v2_x1_0
+            'deeplabv3plus_shufflenet_v2_x1_0': network.deeplabv3plus_shufflenet_v2_x1_0,
+            'deeplabv3_ghostnet_v2_1_0': network.deeplabv3_ghostnet_v2_1_0,
+            'deeplabv3plus_ghostnet_v2_1_0': network.deeplabv3plus_ghostnet_v2_1_0,
+            'deeplabv3_ghostnet_v2_1_3': network.deeplabv3_ghostnet_v2_1_3,
+            'deeplabv3plus_ghostnet_v2_1_3': network.deeplabv3plus_ghostnet_v2_1_3,
+            'deeplabv3_ghostnet_v2_1_6': network.deeplabv3_ghostnet_v2_1_6,
+            'deeplabv3plus_ghostnet_v2_1_6': network.deeplabv3plus_ghostnet_v2_1_6
             }
 
     model = model_map[opts.model](num_classes=opts.num_classes, output_stride=opts.output_stride)
