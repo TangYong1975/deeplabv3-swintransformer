@@ -5,6 +5,7 @@ from .backbone import microsoft_swintransformer
 from .backbone import hrnetv2
 from .backbone import xception
 from .backbone import ghostnetv2
+from .backbone import mobilenetv2_bubbliiiing
 
 from torchvision.models import resnet
 from torchvision.models import mobilenetv2
@@ -46,13 +47,52 @@ def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_bac
     model = DeepLabV3(backbone, classifier)
     return model
 
+def _nostride_dilate(m, dilate):
+    classname = m.__class__.__name__
+    if classname.find('Conv2d') != -1:
+        if m.stride == (2, 2):
+            m.stride = (1, 1)
+            if m.kernel_size == (3, 3):
+                m.dilation = (dilate//2, dilate//2)
+                m.padding = (dilate//2, dilate//2)
+        else:
+            if m.kernel_size == (3, 3):
+                m.dilation = (dilate, dilate)
+                m.padding = (dilate, dilate)
+
 def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
     if output_stride==8:
         aspp_dilate = [12, 24, 36]
     else:
         aspp_dilate = [6, 12, 18]
 
-    if backbone_name == "mobilenet_v2": 
+    if backbone_name == "mobilenet_v2_bubbliiiing": 
+        backbone = mobilenetv2_bubbliiiing.mobilenet_v2(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:4]
+        #--------------------------------
+        import functools
+        total_idx  = len(backbone.features)
+        down_idx   = [2, 4, 7, 14]
+        if output_stride == 8:
+            for i in range(down_idx[-2], down_idx[-1]):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=2)
+                )
+            for i in range(down_idx[-1], total_idx):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=4)
+                )
+        elif output_stride == 16:
+            for i in range(down_idx[-1], total_idx):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=2)
+                )
+        #--------------------------------
+        backbone.high_level_features = backbone.features[4:-1]
+
+        inplanes = 320
+        low_level_planes = 24
+    elif backbone_name == "mobilenet_v2": 
         backbone = mobilenetv2.mobilenet_v2(pretrained=pretrained_backbone)
         backbone.low_level_features = backbone.features[0:4]
         backbone.high_level_features = backbone.features[4:-1]
@@ -412,6 +452,9 @@ def deeplabv3_resnet101(num_classes=21, output_stride=8, pretrained_backbone=Tru
     """
     return _load_model('deeplabv3', 'resnet101', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_mobilenet_v2_bubbliiiing(num_classes=21, output_stride=8, pretrained_backbone=False):
+    return _load_model('deeplabv3', 'mobilenet_v2_bubbliiiing', num_classes, output_stride=16, pretrained_backbone=False)
+
 def deeplabv3_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=True, **kwargs):
     """Constructs a DeepLabV3 model with a MobileNetv2 backbone.
 
@@ -530,7 +573,10 @@ def deeplabv3plus_resnet101(num_classes=21, output_stride=8, pretrained_backbone
     return _load_model('deeplabv3plus', 'resnet101', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
 
-def deeplabv3plus_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=True):
+def deeplabv3plus_mobilenet_v2_bubbliiiing(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'mobilenet_v2_bubbliiiing', num_classes, output_stride=16, pretrained_backbone=False)
+
+def deeplabv3plus_mobilenet_v2(num_classes=21, output_stride=8, pretrained_backbone=False):
     """Constructs a DeepLabV3+ model with a MobileNetv2 backbone.
 
     Args:

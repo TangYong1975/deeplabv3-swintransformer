@@ -17,4 +17,5 @@ note：
 12. add shufflenetv2(x0_5, x1_0)
 13. result(resnet50) for voc
 14. add ghostnetv2(1_0, 1_3, 1_6)
-6. add dataset named 'Battery' for test
+15. add dataset named 'Battery' for test
+16. add mobilenet_v2_bubbliiiing, by means of "https://github.com/bubbliiiing/deeplabv3-plus-pytorch/tree/bilibili"

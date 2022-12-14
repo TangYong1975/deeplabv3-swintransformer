@@ -33,10 +33,11 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default = 'deeplabv3plus_ghostnet_v2_1_0',
+    parser.add_argument("--model", type=str, default = 'deeplabv3_mobilenet_v2_bubbliiiing',
                         choices=['deeplabv3_resnet18', 'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
+                                 'deeplabv3_mobilenet_v2_bubbliiiing', 'deeplabv3plus_mobilenet_v2_bubbliiiing',
                                  'deeplabv3_mobilenet_v2', 'deeplabv3plus_mobilenet_v2',
                                  'deeplabv3_mobilenet_v3_small', 'deeplabv3plus_mobilenet_v3_small',
                                  'deeplabv3_mobilenet_v3_large', 'deeplabv3plus_mobilenet_v3_large',
@@ -64,7 +65,7 @@ def get_argparser():
                                  'deeplabv3_ghostnet_v2_1_6', 'deeplabv3plus_ghostnet_v2_1_6'], help='model name')
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
-    parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
+    parser.add_argument("--output_stride", type=int, default=8, choices=[8, 16])
  
     # Train Options
     parser.add_argument("--test_only", action='store_true', default=False)
@@ -83,7 +84,7 @@ def get_argparser():
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=448) # swin-transformer, 7*x, for example, 448=7*64
+    parser.add_argument("--crop_size", type=int, default=512) # swin-transformer, 7*x, for example, 448=7*64
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
@@ -277,6 +278,8 @@ def main():
             'deeplabv3plus_resnet50': network.deeplabv3plus_resnet50,
             'deeplabv3_resnet101': network.deeplabv3_resnet101,
             'deeplabv3plus_resnet101': network.deeplabv3plus_resnet101,
+            'deeplabv3_mobilenet_v2_bubbliiiing': network.deeplabv3_mobilenet_v2_bubbliiiing,
+            'deeplabv3plus_mobilenet_v2_bubbliiiing': network.deeplabv3plus_mobilenet_v2_bubbliiiing,
             'deeplabv3_mobilenet_v2': network.deeplabv3_mobilenet_v2,
             'deeplabv3plus_mobilenet_v2': network.deeplabv3plus_mobilenet_v2,
             'deeplabv3_mobilenet_v3_small': network.deeplabv3_mobilenet_v3_small,
