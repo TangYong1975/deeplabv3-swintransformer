@@ -33,7 +33,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default = 'deeplabv3_mobilenet_v2_bubbliiiing',
+    parser.add_argument("--model", type=str, default = 'deeplabv3plus_mobilenet_v2_bubbliiiing',
                         choices=['deeplabv3_resnet18', 'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
@@ -78,13 +78,13 @@ def get_argparser():
     parser.add_argument("--lr_policy", type=str, default='poly', choices=['poly', 'step'],
                         help="learning rate scheduler policy")
     parser.add_argument("--step_size", type=int, default=10000)
-    parser.add_argument("--crop_val", action='store_true', default=False,
+    parser.add_argument("--crop_val", action='store_true', default=True,
                         help='crop validation (default: False)')
     parser.add_argument("--batch_size", type=int, default=2, #16, swin_t, 2, swin_b
                         help='batch size (default: 16)')
     parser.add_argument("--val_batch_size", type=int, default=2,
                         help='batch size for validation (default: 4)')
-    parser.add_argument("--crop_size", type=int, default=512) # swin-transformer, 7*x, for example, 448=7*64
+    parser.add_argument("--crop_size", type=int, default=448) # swin-transformer, 7*x, for example, 448=7*64
     
     parser.add_argument("--ckpt", default=None, type=str,
                         help="restore from checkpoint")
@@ -137,8 +137,7 @@ def get_dataset(opts):
         ])
         if opts.crop_val:
             val_transform = et.ExtCompose([
-                et.ExtResize(size=opts.crop_size),
-                et.ExtCenterCrop(opts.crop_size),
+                et.ExtRandomCrop(size=(opts.crop_size, opts.crop_size), pad_if_needed=True),
                 et.ExtToTensor(),
                 et.ExtNormalize(mean=[0.485, 0.456, 0.406],
                                 std=[0.229, 0.224, 0.225]),
@@ -152,7 +151,7 @@ def get_dataset(opts):
         train_dst = VOCSegmentation(root=opts.data_root, year=opts.year,
                                     image_set='train', download=opts.download, transform=train_transform)
         val_dst = VOCSegmentation(root=opts.data_root, year=opts.year,
-                                  image_set='val', download=False, transform=train_transform)
+                                  image_set='val', download=False, transform=val_transform)
 
     if opts.dataset == 'cityscapes':
         train_transform = et.ExtCompose([
