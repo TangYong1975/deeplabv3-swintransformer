@@ -49,7 +49,7 @@ def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_bac
 
 def _nostride_dilate(m, dilate):
     classname = m.__class__.__name__
-    if classname.find('Conv2d') != -1:
+    if classname == "Conv2d":
         if m.stride == (2, 2):
             m.stride = (1, 1)
             if m.kernel_size == (3, 3):
