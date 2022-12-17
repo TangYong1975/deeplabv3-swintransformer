@@ -108,11 +108,36 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
         low_level_planes = 40
     elif backbone_name == "mobilenet_v3_large":    
         backbone = mobilenetv3.mobilenet_v3_large(pretrained=pretrained_backbone)
-        backbone.low_level_features = backbone.features[0:8]
-        backbone.high_level_features = backbone.features[8:-1]
+        backbone.low_level_features = backbone.features[0:4]
+        backbone.high_level_features = backbone.features[4:-1]
  
         inplanes = 160
-        low_level_planes = 80
+        low_level_planes = 24
+    elif backbone_name == "mobilenet_v3_large_test":    
+        backbone = mobilenetv3.mobilenet_v3_large(pretrained=pretrained_backbone)
+        backbone.low_level_features = backbone.features[0:4]
+        #--------------------------------
+        import functools
+        total_idx  = len(backbone.features)
+        down_idx   = [2, 4, 7, 12]
+        if output_stride == 8:
+            for i in range(down_idx[-2], down_idx[-1]):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=2)
+                )
+            for i in range(down_idx[-1], total_idx):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=4)
+                )
+        elif output_stride == 16:
+            for i in range(down_idx[-1], total_idx):
+                backbone.features[i].apply(
+                    functools.partial(_nostride_dilate, dilate=2)
+                )        
+        #--------------------------------
+        backbone.high_level_features = backbone.features[4:-1]
+        inplanes = 160
+        low_level_planes = 24
     else:        
         raise NotImplementedError(backbone_name)
 
@@ -471,6 +496,9 @@ def deeplabv3_mobilenet_v3_small(num_classes=21, output_stride=8, pretrained_bac
 def deeplabv3_mobilenet_v3_large(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'mobilenet_v3_large', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
+def deeplabv3_mobilenet_v3_large_test(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3', 'mobilenet_v3_large_test', num_classes, output_stride=16, pretrained_backbone=pretrained_backbone)
+
 def deeplabv3_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
 
@@ -591,6 +619,9 @@ def deeplabv3plus_mobilenet_v3_small(num_classes=21, output_stride=8, pretrained
 
 def deeplabv3plus_mobilenet_v3_large(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'mobilenet_v3_large', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_mobilenet_v3_large_test(num_classes=21, output_stride=8, pretrained_backbone=True):
+    return _load_model('deeplabv3plus', 'mobilenet_v3_large_test', num_classes, output_stride=16, pretrained_backbone=pretrained_backbone)
 
 def deeplabv3plus_berniwal_swintransformer_swin_t(num_classes=21, output_stride=8, pretrained_backbone=True):
     return _load_model('deeplabv3plus', 'berniwal_swintransformer_swin_t', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)

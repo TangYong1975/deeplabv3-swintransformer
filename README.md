@@ -19,3 +19,4 @@ note：
 14. add ghostnetv2(1_0, 1_3, 1_6)
 15. add dataset named 'Battery' for test
 16. add mobilenet_v2_bubbliiiing, by means of "https://github.com/bubbliiiing/deeplabv3-plus-pytorch/tree/bilibili"
+17. modify mobilenet_v3 for test, by means of bubbliiiing
