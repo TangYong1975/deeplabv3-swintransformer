@@ -3,6 +3,9 @@ from torch import nn, einsum
 import numpy as np
 from einops import rearrange, repeat
 
+'''
+https://blog.csdn.net/qq_45848817/article/details/127105956
+'''
 
 class CyclicShift(nn.Module):
     def __init__(self, displacement):
