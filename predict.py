@@ -32,7 +32,7 @@ def get_argparser():
                         help="num classes (default: None)")
 
     # Deeplab Options
-    parser.add_argument("--model", type=str, default = 'deeplabv3plus_mobilenet_v3_large_test',
+    parser.add_argument("--model", type=str, default = 'deeplabv3plus_resnet18',
                         choices=['deeplabv3_resnet18', 'deeplabv3plus_resnet18',
                                  'deeplabv3_resnet50', 'deeplabv3plus_resnet50',
                                  'deeplabv3_resnet101', 'deeplabv3plus_resnet101',
@@ -78,7 +78,7 @@ def get_argparser():
     parser.add_argument("--crop_size", type=int, default=448) # swin-transformer, 7*x, for example, 448=7*64
 
     
-    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_regnet_y_32gf_voc_os16.pth', type=str,
+    parser.add_argument("--ckpt", default='checkpoints/best_deeplabv3plus_resnet18_voc_os8.pth', type=str,
                         help="resume from checkpoint")
     parser.add_argument("--gpu_id", type=str, default='0',
                         help="GPU ID")
@@ -180,7 +180,7 @@ def main():
     
     if opts.ckpt is not None and os.path.isfile(opts.ckpt):
         # https://github.com/VainF/DeepLabV3Plus-Pytorch/issues/8#issuecomment-605601402, @PytaichukBohdan
-        checkpoint = torch.load(opts.ckpt, map_location=torch.device('cpu'))
+        checkpoint = torch.load(opts.ckpt, map_location=torch.device("cpu"), weights_only=False) # , weights_only=False for torch 2.6
         model.load_state_dict(checkpoint["model_state"])
         model = nn.DataParallel(model)
         model.to(device)
