@@ -3,9 +3,9 @@ from PIL import Image
 from torchvision import transforms
 import network
 
-model = network.deeplabv3plus_resnet50(num_classes=2, output_stride=16)
+model = network.deeplabv3plus_resnet18(num_classes=2, output_stride=16)
 
-model.load_state_dict((torch.load('checkpoints/best_deeplabv3plus_resnet50_voc_os16.pth'))["model_state"])
+model.load_state_dict((torch.load('checkpoints/best_deeplabv3plus_resnet18_voc_os8.pth', map_location=torch.device("cpu"), weights_only=False))["model_state"])
 model.eval()
 
 input_image = Image.open('datasets/data/CameraBase/VOCdevkit/VOC2012/JPEGImages/0001-0019.jpg')
